@@ -153,7 +153,7 @@ public partial class InternDbContext : DbContext
         {
             entity
                 .HasNoKey()
-                .ToTable("MOCK_DATA (1)");
+                .ToTable("mockData");
 
             entity.Property(e => e.Address1)
                 .HasMaxLength(50)
