@@ -32,12 +32,11 @@ solutionFolder = Path.GetFullPath(solutionFolder);
 Console.WriteLine("Current dir "+ solutionFolder);
 var output = solutionFolder+"/output";
 var log= solutionFolder+"/log";
-UnixFileMode rw = UnixFileMode.UserRead | UnixFileMode.UserWrite;
 if (Directory.Exists(output))
-{
+{   
     Console.WriteLine("The output directory exists");
-     
-    File.SetUnixFileMode(output, rw);
+    //RW perms
+    
 } else {
     Console.WriteLine("The output directory does not exist");
     validationFailed = true;
@@ -46,7 +45,7 @@ if (Directory.Exists(output))
 if (Directory.Exists(log))
 {
     Console.WriteLine("The log directory exists");
-    File.SetUnixFileMode(log, rw);
+    //RW PERMS
 
 }
 else
@@ -70,9 +69,33 @@ while (true)
         await report.Generate();
 
         //Save and output the report in CSV
-        var fileName = "reportStuffs";
+        var date = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        Console.WriteLine(date);
+        var fileName = solutionFolder+$"/output/applicantSummary${date}.csv";
+        //File.WriteAllText(fileName, "");
         Console.WriteLine("Number of records processesd: "   );
     }
+}
+
+bool rwPerms(string folder) {
+    try {
+        //Make a tmp file and try to read and write to it
+        var testFile = Path.Combine(folder, ".tmp");
+        File.WriteAllLines(testFile);
+        File.ReadAllLines(testFile);
+
+    }
+    catch(UnauthorizedAccessException) {
+        //Invalid perm
+        return false;
+    }
+    catch (IOException)
+    {
+        //File location issue
+        return false;
+    }
+
+
 }
 
 
