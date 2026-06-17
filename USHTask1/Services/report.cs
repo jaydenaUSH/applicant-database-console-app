@@ -1,4 +1,4 @@
-﻿
+﻿    
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
@@ -28,7 +28,31 @@ namespace USHTask1.Services
             var states = _db.MockData1s.GroupBy(a =>a.State).Select(group=> new { state = group.Key, Count = group.Count()}).ToList();
             var household = _db.MockData1s.GroupBy(a=>a.HouseholdSize<4?"Small(1-3)":a.HouseholdSize<7?"Medium(4-6)":"Large(7+)").Select(group => new {Size = group.Key, count = group.Count()}).ToList();
             var top10 = _db.MockData1s.AsNoTracking().Select(a=> new{a.FirstName, a.LastName, a.Email,a.ApplicantStatus}).Take(10).ToList();
+
+            header.AppendLine("Applicant Summary Report");
+            header.AppendLine("------------------------");
+            header.AppendLine($"\nTotal Applicants: {total}\n");
+            header.AppendLine("Applicants by State: ");
+            foreach (var state in states)
+            {
+
+                header.AppendLine($"{state.state}:\t{state.Count}");
+            }
+            header.AppendLine("\nApplicants by Household Size");
+            foreach (var bin in household)
+            {
+                header.AppendLine($"{bin.Size}: {bin.count}");
+            }
+            header.AppendLine($"\nApplicants with Children: {parents}");
+            header.AppendLine($"\nApplicants with Food insecuirty/assistance need indicators: {inNeed}");
+            foreach (var row in top10)
+            {
+                header.AppendLine($"\n{row.FirstName} {row.LastName}\t| {row.Email.PadRight(25)}\t| {row.ApplicantStatus}");
+            }
+
             //Create the visual for the report
+
+            /*
             Console.WriteLine("Applicant Summary Report");
             Console.WriteLine("------------------------");
             Console.WriteLine($"\nTotal Applicants: {total}\n");
@@ -49,7 +73,7 @@ namespace USHTask1.Services
                 Console.WriteLine($"\n{row.FirstName} {row.LastName}\t| {row.Email.PadRight(25)}\t| {row.ApplicantStatus}");
             }
 
-
+            */
 
 
 
