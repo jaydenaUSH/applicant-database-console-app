@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using System.Text.Json;
 using USHTask1.Models;
 
@@ -14,7 +15,12 @@ namespace USHTask1.Services
             _db = db;
         }
 
-        public Task Generate() {
+        public async Task<StringBuilder> Generate() {
+            var header = new StringBuilder();
+            /* EDGE CASES
+             If the return is empty
+             
+             */
             // Gather the necessary info from SQL
             var total = _db.MockData1s.Count();
             var parents = _db.MockData1s.Count(a =>a.ChildrenInHousehold>0);
@@ -30,7 +36,7 @@ namespace USHTask1.Services
             foreach (var state in states)
             {
                
-                Console.WriteLine($"{state.state==""?"No State":state.state}:\t{state.Count}");
+                Console.WriteLine($"{state.state}:\t{state.Count}");
             }
             Console.WriteLine("\nApplicants by Household Size");
             foreach(var bin in household)
@@ -49,7 +55,7 @@ namespace USHTask1.Services
 
 
             
-            return Task.CompletedTask;
+            return header;
         }
     }
 }
