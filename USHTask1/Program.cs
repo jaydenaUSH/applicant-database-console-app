@@ -94,6 +94,7 @@ while (true)
         var fileName = solutionFolder+$"/output/applicantSummary{date}.csv";
         File.WriteAllText(fileName, reportTxt.ToString());
             Console.WriteLine("Number of records processesd: ");
+            reportLog.Information(("Succesful report generation"));
         }
         catch (Exception e) {
             reportLog.Error(e, "Report generation failed");
