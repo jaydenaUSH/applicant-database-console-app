@@ -19,7 +19,7 @@ var validationFailed = false;
 
 //Serilog config
 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-var logpath = Path.Combine(baseDir, "..", "..", "..", "log");
+var logpath = Path.Combine(baseDir, "log");
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).WriteTo.File(
         path: Path.Combine(logpath, "log-.txt"),
         rollingInterval: RollingInterval.Day,
@@ -78,7 +78,7 @@ if (Directory.Exists(log))
         validationFailed = true;
     }
     else { fsLog.Information("R/W access permitted for log folder"); }
-
+    b
 }
 else
 {
