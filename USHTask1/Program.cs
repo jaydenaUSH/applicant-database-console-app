@@ -78,7 +78,7 @@ if (Directory.Exists(log))
         validationFailed = true;
     }
     else { fsLog.Information("R/W access permitted for log folder"); }
-    b
+   
 }
 else
 {
