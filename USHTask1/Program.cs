@@ -18,7 +18,13 @@ Console.WriteLine("Application running");
 var validationFailed = false;
 
 //Serilog config
-Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
+var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+var logpath = Path.Combine(baseDir, "..", "..", "..", "log");
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).WriteTo.File(
+        path: Path.Combine(logpath, "log-.txt"),
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+    ).CreateLogger();
 
 var startupLog = Log.Logger.ForContext("SourceContext", "Startup");
 startupLog.Information("Application running");
@@ -37,13 +43,15 @@ if(connectable){
         validationFailed = true; }
 
 //Check for the required folders and make sure R-W access
-System.Diagnostics.Debug.WriteLine($"Base folder: {Environment.CurrentDirectory}");
+
+
 var solutionFolder = Path.Combine(Environment.CurrentDirectory, "..", "..");
-solutionFolder = Path.GetFullPath(solutionFolder);
 var fsLog = Log.Logger.ForContext("SourceContext", "FileSystem");
-startupLog.Information("Current dir {SolutionFolder}", solutionFolder);
-var output = solutionFolder+"/output";
-var log= solutionFolder+"/log";
+startupLog.Information("Current dir {SolutionFolder}", baseDir);
+var output = Path.Combine(logpath, "..", "output");
+output = Path.GetFullPath(output);
+Console.WriteLine(Path.GetFullPath(output));
+var log= logpath;
 
 if (Directory.Exists(output))
 {
@@ -53,7 +61,7 @@ if (Directory.Exists(output))
     {
         fsLog.Error("No read/write access to output folder");
         validationFailed = true;
-    }
+    } else { fsLog.Information("R/W access permitted for output folder"); }
     
 } else {
     fsLog.Information("The output directory does not exist");
@@ -69,6 +77,7 @@ if (Directory.Exists(log))
         fsLog.Error("No read/write access to log folder");
         validationFailed = true;
     }
+    else { fsLog.Information("R/W access permitted for log folder"); }
 
 }
 else
@@ -98,18 +107,23 @@ while (true)
             var reportTxt = await report.Generate();
         //Save and output the report in CSV
         var date = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        var fileName = solutionFolder+$"/output/applicantSummary{date}.csv";
-        File.WriteAllText(fileName, reportTxt.ToString());
+        var fileName = output+$"/applicantSummary{date}.csv";
+            Console.WriteLine("File Name", fileName);
+        File.AppendAllText(fileName, reportTxt.ToString());
             reportLog.Information(("Succesful report generation, cycle complete"));
             await Task.Delay(TimeSpan.FromHours(1));
 
         }
         catch (Exception e) {
             reportLog.Error(e, "Report generation failed");
+            //prevent spam
+            await Task.Delay(TimeSpan.FromSeconds(30));
+
         }
     } else
     {
         reportLog.Information("Validation failed report generation skipped");
+        Log.CloseAndFlush();
 
     }
 
@@ -121,7 +135,6 @@ bool rwPerms(string folder) {
         var testFile = Path.Combine(folder, ".tmp");
         File.WriteAllText(testFile, "test");
         File.ReadAllText(testFile);
-        File.Delete(testFile);
         return true;
 
     }
