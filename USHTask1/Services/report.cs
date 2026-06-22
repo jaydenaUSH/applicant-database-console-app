@@ -49,6 +49,7 @@ namespace USHTask1.Services
             {
                 header.AppendLine($"\n{row.FirstName} {row.LastName}\t| {row.Email.PadRight(25)}\t| {row.ApplicantStatus}");
             }
+            header.AppendLine($"Numbers of records processed: {total}" );
 
             //Create the visual for the report
 

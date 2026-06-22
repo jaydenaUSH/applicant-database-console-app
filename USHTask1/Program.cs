@@ -19,6 +19,7 @@ var validationFailed = false;
 
 //Serilog config
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
+
 var startupLog = Log.Logger.ForContext("SourceContext", "Startup");
 startupLog.Information("Application running");
 
@@ -36,8 +37,8 @@ if(connectable){
         validationFailed = true; }
 
 //Check for the required folders and make sure R-W access
-
-var solutionFolder = Path.Combine(Environment.CurrentDirectory, "..", "..", "..");
+System.Diagnostics.Debug.WriteLine($"Base folder: {Environment.CurrentDirectory}");
+var solutionFolder = Path.Combine(Environment.CurrentDirectory, "..", "..");
 solutionFolder = Path.GetFullPath(solutionFolder);
 var fsLog = Log.Logger.ForContext("SourceContext", "FileSystem");
 startupLog.Information("Current dir {SolutionFolder}", solutionFolder);
@@ -81,20 +82,27 @@ else
 var report = new Report(db);
 
 var reportLog =Log.Logger.ForContext("SourceContext", "Report");
+if (validationFailed)
+{
+    Console.WriteLine("ERROR: Startup validation failed. Check logs for details.");
+    return;
+}
+
 while (true)
 {
     // Run this code every hour and once before then
     if(!validationFailed)
     {
         try {
+            reportLog.Information("Report cyle beginning");
             var reportTxt = await report.Generate();
-
         //Save and output the report in CSV
         var date = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         var fileName = solutionFolder+$"/output/applicantSummary{date}.csv";
         File.WriteAllText(fileName, reportTxt.ToString());
-            Console.WriteLine("Number of records processesd: ");
-            reportLog.Information(("Succesful report generation"));
+            reportLog.Information(("Succesful report generation, cycle complete"));
+            await Task.Delay(TimeSpan.FromHours(1));
+
         }
         catch (Exception e) {
             reportLog.Error(e, "Report generation failed");
@@ -102,8 +110,8 @@ while (true)
     } else
     {
         reportLog.Information("Validation failed report generation skipped");
+
     }
-    await Task.Delay(TimeSpan.FromHours(1));
 
 }
 
@@ -113,6 +121,7 @@ bool rwPerms(string folder) {
         var testFile = Path.Combine(folder, ".tmp");
         File.WriteAllText(testFile, "test");
         File.ReadAllText(testFile);
+        File.Delete(testFile);
         return true;
 
     }
@@ -130,4 +139,4 @@ bool rwPerms(string folder) {
 }
 
 
-Console.ReadLine();
+    
