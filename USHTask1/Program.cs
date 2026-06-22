@@ -20,6 +20,8 @@ var validationFailed = false;
 //Serilog config
 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
 var logpath = Path.Combine(baseDir, "log");
+var output = Path.Combine(baseDir, "output");
+
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).WriteTo.File(
         path: Path.Combine(logpath, "log-.txt"),
         rollingInterval: RollingInterval.Day,
@@ -48,9 +50,6 @@ if(connectable){
 var solutionFolder = Path.Combine(Environment.CurrentDirectory, "..", "..");
 var fsLog = Log.Logger.ForContext("SourceContext", "FileSystem");
 startupLog.Information("Current dir {SolutionFolder}", baseDir);
-var output = Path.Combine(logpath, "..", "output");
-output = Path.GetFullPath(output);
-Console.WriteLine(Path.GetFullPath(output));
 var log= logpath;
 
 if (Directory.Exists(output))
@@ -65,8 +64,10 @@ if (Directory.Exists(output))
     
 } else {
     fsLog.Information("The output directory does not exist");
-    validationFailed = true;
-    }
+    Directory.CreateDirectory(output);
+    fsLog.Information("The output directory was created");
+
+}
 
 if (Directory.Exists(log))
 {
